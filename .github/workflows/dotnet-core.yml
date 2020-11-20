@@ -30,10 +30,27 @@ jobs:
     
     - name: Publish with dotnet
       run: dotnet publish --configuration Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app_published'  --no-build       
-          
+       
+    - name: Publish artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: webapp
+        path: app_published
+
+  deploy:
+    needs: build
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+
+    # Download artifacts
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: webapp     
+
     - name: 'Run Azure webapp deploy action using publish profile credentials'
       uses: azure/webapps-deploy@v2
       with: 
           app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }} # Define secret variable in repository settings as per action documentation
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app_published'          
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }} # Define secret variable in repository settings as per action documentation      
